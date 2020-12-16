@@ -1,0 +1,175 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <title>PCUTS</title>
+</head>
+
+<body>
+    <canvas id='canvas1'></canvas>
+    <canvas id='canvas2'></canvas>
+    <h1 class="display-4">UTS-PC</h1>
+    <p class="lead">Filter</p>
+    <hr class="my-4">
+    <button  id='fltr' value='5' type="button">Tambah Filter</button>
+    <button id='ori' type="button">Gambar Asli</button>
+</body>
+    
+<script src='arraysort.js'></script>
+
+<script>
+    
+    /*pembuatan variabel canvas1 untuk mendapatkan tag dengan elemen canvas1*/
+    var canvas = document.getElementById('canvas1')
+    
+    /*pembuatan variabel barubernama obj yang memiliki elemen diambil dari variabel canvas sebelumnya*/
+    var obj = new pc(canvas)
+    
+    /*memasukkan value berupa gambar ke dalam variabel  obj yang sudah dimasukkan kedalam folder yang sama dengan file html*/
+    obj.image2canvas("rem.jpg")
+    
+    /*pembuatan variabel canvas2 untuk mendapatkan tag dengan elemen canvas2*/
+    var canvas2 = document.getElementById('canvas2')
+    
+    /*pembuatan variabel barubernama obj2 yang memiliki elemen diambil dari variabel canvas2 sebelumnya*/
+    var obj2 = new pc(canvas2)
+    
+    /*memasukkan value berupa gambar ke dalam variabel  obj2 yang sudah dimasukkan kedalam folder yang sama dengan file html*/
+    obj2.blank2canvas(100, 100)
+    
+    /*membuat variabel baru bernama tes yang memiliki value array*/
+    var tes = new Array()
+
+    /*mencari tag dengan id ori untuk menambahkan fungsi yang apabila diklik maka gambar akan kembali ke tampilan awal*/
+    document.getElementById('ori').addEventListener('click', function() {
+        obj.image2original()
+    })
+  
+    /*mencari tag dengan id filtr untuk menambahkan fungsi yang apabila diklik maka gambar akan mengaplikasikan filter yang sudah dibuat pada script*/
+    document.getElementById('fltr').addEventListener('click',function(){ 
+        
+
+    /*menyalin value array dari tag dengan id fltr*/    
+        document.getElementById('fltr').value = this.value
+    
+    /*membuat variabel baru yang mengambil value dari variabel obj dengan function image2read atau membaca value dari gambar*/ 
+        tes = obj.image2read()
+
+
+        //membuat variabel tesbackup dengan value berupa array
+        tesbackup = new Array()
+        
+        /*membuat perulangan sebanyak nilai dari variabel tes*/
+        for (var c = 0; c < tes.length; c++) {
+            
+            /*membuat array baru*/
+            temp = new Array()
+            
+            /*membuat perulangan untuk variabel d*/
+            for (var d = 0; d < 4; d++) {
+                temp.push(tes[c][d])
+            }
+            tesbackup.push(temp)
+        }
+               
+        /*megembalikan nilai yang sudah dirubah kedalam gambar*/
+        for (var i = 0; i < tesbackup.length; i++) {
+            tes[i][0] += (1) //memberi nilai red
+            tes[i][1] += (9) //memberi nilai green
+            tes[i][2] += (99) //memberi nilai blue
+            tes[i][3] += 255 //memberi nilai aloha atau transparan
+        }
+        
+
+        /*memberikan filter negatif pada gambar*/
+        tesbackup = new Array()
+        for (var c = 0; c < tes.length; c++) {
+            temp = new Array()
+            for (var d = 0; d < 4; d++) {
+                temp.push(tes[c][d])
+            }
+            tesbackup.push(temp)
+        }
+
+        /*megembalikan nilai yang sudah dirubah kedalam gambar*/
+        for (var i = 0; i < tesbackup.length; i++) {
+            tes[i][0] = (255 - tesbackup[i][0])
+            tes[i][1] = (255 - tesbackup[i][1])
+            tes[i][2] = (255 - tesbackup[i][2])
+            tes[i][3] = tesbackup[i][3]
+        }
+
+
+        /*memberi filter membalikkan gambar*/
+        tesbackup = new Array()
+        for (var c = 0; c < tes.length; c++) {
+            temp = new Array()
+            for (var d = 0; d < 4; d++) {
+                temp.push(tes[c][d])
+            }
+            tesbackup.push(temp)
+        }
+        
+        /*megembalikan nilai yang sudah dirubah kedalam gambar*/      
+        for (var i = 0; i < tesbackup.length; i++) {
+            x = obj.i2x(i)
+            y = obj.i2y(i)
+            posnow = obj.xy2i(obj.width - 1 - x, y)
+            tes[i][0] = tesbackup[posnow][0]
+            tes[i][1] = tesbackup[posnow][1]
+            tes[i][2] = tesbackup[posnow][2]
+            tes[i][3] = tesbackup[posnow][3]
+        }
+
+
+        /*menambahkan filter mean kedalam gambar*/
+         filtersize = parseInt(document.getElementById('fltr').value=this.value)
+        if (filtersize % 2 == 0 || filtersize < 3) {
+            warning('FilterSize must Odd Number and >= 3')
+            return false
+        }
+        borderparam = (filtersize - 1) / 2 //membuat matriks 3* 3
+        meandoubleparam = filtersize * filtersize
+        /*menyalin nilai kedalam variabel baru*/
+        tesbackup = new Array()
+        for (var c = 0; c < tes.length; c++) {
+            temp = new Array()
+            for (var d = 0; d < 4; d++) {
+                temp.push(tes[c][d])
+            }
+            tesbackup.push(temp)
+        }
+        /*megembalikan nilai yang sudah dirubah kedalam gambar*/
+        for (var i = 0; i < tes.length; i++) {
+            xstart = obj.i2x(i) - borderparam
+            xend = obj.i2x(i) + borderparam
+            ystart = obj.i2y(i) - borderparam
+            yend = obj.i2y(i) + borderparam
+            red = 0
+            green = 0
+            blue = 0
+            for (var yc = ystart; yc <= yend; yc++) {
+                for (var xc = xstart; xc <= xend; xc++) {
+                    if (yc >= 0 && xc >= 0 && xc < obj.width && yc < obj.height) {
+                        red += tesbackup[obj.xy2i(xc, yc)][0]
+                        green += tesbackup[obj.xy2i(xc, yc)][1]
+                        blue += tesbackup[obj.xy2i(xc, yc)][2]
+                    }
+                }
+            }
+            tes[i][0] = Math.floor(red / meandoubleparam) //mengubah nilai untuk value red
+            tes[i][1] = Math.floor(green / meandoubleparam) //mengubah nilai untuk value green
+            tes[i][2] = Math.floor(blue / meandoubleparam) //mengubah nilai untuk value blue
+        }
+        obj.array2canvas(tes)
+    })
+	
+
+</script>
+<style>
+body {
+  overflow-y: hidden; /* menyembunyikan scrollbar samping kanan */
+  overflow-x: hidden; /* menyembunyikan scrollbar bagian bawah*/
+} 
+.jumbotron{height: 100vh;}/*membuat ukuran penuh tampilan utama*/
+</style>
